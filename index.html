@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beatpad</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body class="bg-[#323437] text-white min-h-screen flex flex-col items-center justify-center p-4">
+    <h1 class="text-3xl">Beatpad</h1>
+    <p class="mb-8">A simple, easy-to-use drum pad to create beats!</p>
+    <div class="flex flex-col items-center gap-4">
+        <div id="drumpad" class="grid grid-cols-4 gap-4">
+            <button class="drum-btn bg-[#444] hover:bg-[#666] p-6 rounded transition" data-key="Q" data-sound="kick">Q<br><span class="text-xs">Kick</span></button>
+            <button class="drum-btn bg-[#444] hover:bg-[#666] p-6 rounded transition" data-key="W" data-sound="snare">W<br><span class="text-xs">Snare</span></button>
+            <button class="drum-btn bg-[#444] hover:bg-[#666] p-6 rounded transition" data-key="E" data-sound="hihat">E<br><span class="text-xs">Hi-Hat</span></button>
+            <button class="drum-btn bg-[#444] hover:bg-[#666] p-6 rounded transition" data-key="R" data-sound="clap">R<br><span class="text-xs">Clap</span></button>
+            <button class="drum-btn bg-[#444] hover:bg-[#666] p-6 rounded transition" data-key="A" data-sound="tom">A<br><span class="text-xs">Tom</span></button>
+            <button class="drum-btn bg-[#444] hover:bg-[#666] p-6 rounded transition" data-key="S" data-sound="rim">S<br><span class="text-xs">Rim</span></button>
+            <button class="drum-btn bg-[#444] hover:bg-[#666] p-6 rounded transition" data-key="D" data-sound="perc">D<br><span class="text-xs">Perc</span></button>
+            <button class="drum-btn bg-[#444] hover:bg-[#666] p-6 rounded transition" data-key="F" data-sound="cowbell">F<br><span class="text-xs">Cowbell</span></button>
+        </div>
+    <audio id="audio-kick" src="https://cdn.freesound.org/previews/20/20050_16723-lq.mp3"></audio>
+    <audio id="audio-snare" src="https://cdn.freesound.org/previews/66/66717_931655-lq.mp3"></audio>
+    <audio id="audio-hihat" src="https://cdn.freesound.org/previews/14/14510_51268-lq.mp3"></audio>
+    <audio id="audio-clap" src="https://cdn.freesound.org/previews/269/269789_5121236-lq.mp3"></audio>
+    <audio id="audio-tom" src="https://cdn.freesound.org/previews/25/25649_49244-lq.mp3"></audio>
+    <audio id="audio-rim" src="https://cdn.freesound.org/previews/41/41533_51268-lq.mp3"></audio>
+    <audio id="audio-perc" src="https://cdn.freesound.org/previews/37/37249_51268-lq.mp3"></audio>
+    <audio id="audio-cowbell" src="https://cdn.freesound.org/previews/66/66716_931655-lq.mp3"></audio>
+        <script>
+            const soundMap = {
+                Q: 'kick',
+                W: 'snare',
+                E: 'hihat',
+                R: 'clap',
+                A: 'tom',
+                S: 'rim',
+                D: 'perc',
+                F: 'cowbell',
+            };
+            function playSound(sound) {
+                const audio = document.getElementById('audio-' + sound);
+                if (audio) {
+                    audio.currentTime = 0;
+                    audio.play();
+                }
+            }
+            document.querySelectorAll('.drum-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    playSound(btn.dataset.sound);
+                });
+            });
+            document.addEventListener('keydown', e => {
+                const key = e.key.toUpperCase();
+                if (soundMap[key]) {
+                    playSound(soundMap[key]);
+                    const btn = document.querySelector(`.drum-btn[data-key="${key}"]`);
+                    if (btn) {
+                        btn.classList.add('ring', 'ring-yellow-400');
+                        setTimeout(() => btn.classList.remove('ring', 'ring-yellow-400'), 150);
+                    }
+                }
+            });
+        </script>
+    </div>
+    <style>
+        * {
+            font-family: 'Press Start 2P', sans-serif;
+        }
+    </style>
+</body>
+</html>
