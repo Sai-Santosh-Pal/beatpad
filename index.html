@@ -14,23 +14,23 @@
     <p class="mb-8">A simple, easy-to-use drum pad to create beats!</p>
     <div class="flex flex-col items-center gap-4">
         <div id="drumpad" class="grid grid-cols-4 gap-4">
-            <button class="drum-btn bg-[#444] hover:bg-[#666] p-6 rounded transition" data-key="Q" data-sound="kick">Q<br><span class="text-xs">Kick</span></button>
-            <button class="drum-btn bg-[#444] hover:bg-[#666] p-6 rounded transition" data-key="W" data-sound="snare">W<br><span class="text-xs">Snare</span></button>
-            <button class="drum-btn bg-[#444] hover:bg-[#666] p-6 rounded transition" data-key="E" data-sound="hihat">E<br><span class="text-xs">Hi-Hat</span></button>
-            <button class="drum-btn bg-[#444] hover:bg-[#666] p-6 rounded transition" data-key="R" data-sound="clap">R<br><span class="text-xs">Clap</span></button>
-            <button class="drum-btn bg-[#444] hover:bg-[#666] p-6 rounded transition" data-key="A" data-sound="tom">A<br><span class="text-xs">Tom</span></button>
-            <button class="drum-btn bg-[#444] hover:bg-[#666] p-6 rounded transition" data-key="S" data-sound="rim">S<br><span class="text-xs">Rim</span></button>
-            <button class="drum-btn bg-[#444] hover:bg-[#666] p-6 rounded transition" data-key="D" data-sound="perc">D<br><span class="text-xs">Perc</span></button>
-            <button class="drum-btn bg-[#444] hover:bg-[#666] p-6 rounded transition" data-key="F" data-sound="cowbell">F<br><span class="text-xs">Cowbell</span></button>
+            <button class="drum-btn bg-pink-300 hover:bg-pink-300 text-[#323437] p-6 rounded transition font-bold shadow-lg" data-key="Q" data-sound="kick">Q<br><span class="text-xs">Kick</span></button>
+            <button class="drum-btn bg-blue-300 hover:bg-blue-300 text-[#323437] p-6 rounded transition font-bold shadow-lg" data-key="W" data-sound="snare">W<br><span class="text-xs">Snare</span></button>
+            <button class="drum-btn bg-green-200 hover:bg-green-300 text-[#323437] p-6 rounded transition font-bold shadow-lg" data-key="E" data-sound="hihat">E<br><span class="text-xs">Hi-Hat</span></button>
+            <button class="drum-btn bg-yellow-300 hover:bg-yellow-300 text-[#323437] p-6 rounded transition font-bold shadow-lg" data-key="R" data-sound="clap">R<br><span class="text-xs">Clap</span></button>
+            <button class="drum-btn bg-purple-300 hover:bg-purple-300 text-[#323437] p-6 rounded transition font-bold shadow-lg" data-key="A" data-sound="tom">A<br><span class="text-xs">Tom</span></button>
+            <button class="drum-btn bg-orange-300 hover:bg-orange-300 text-[#323437] p-6 rounded transition font-bold shadow-lg" data-key="S" data-sound="rim">S<br><span class="text-xs">Rim</span></button>
+            <button class="drum-btn bg-teal-300 hover:bg-teal-300 text-[#323437] p-6 rounded transition font-bold shadow-lg" data-key="D" data-sound="perc">D<br><span class="text-xs">Perc</span></button>
+            <button class="drum-btn bg-red-300 hover:bg-red-300 text-[#323437] p-6 rounded transition font-bold shadow-lg" data-key="F" data-sound="cowbell">F<br><span class="text-xs">Cowbell</span></button>
         </div>
-    <audio id="audio-kick" src="https://cdn.freesound.org/previews/20/20050_16723-lq.mp3"></audio>
-    <audio id="audio-snare" src="https://cdn.freesound.org/previews/66/66717_931655-lq.mp3"></audio>
-    <audio id="audio-hihat" src="https://cdn.freesound.org/previews/14/14510_51268-lq.mp3"></audio>
-    <audio id="audio-clap" src="https://cdn.freesound.org/previews/269/269789_5121236-lq.mp3"></audio>
-    <audio id="audio-tom" src="https://cdn.freesound.org/previews/25/25649_49244-lq.mp3"></audio>
-    <audio id="audio-rim" src="https://cdn.freesound.org/previews/41/41533_51268-lq.mp3"></audio>
-    <audio id="audio-perc" src="https://cdn.freesound.org/previews/37/37249_51268-lq.mp3"></audio>
-    <audio id="audio-cowbell" src="https://cdn.freesound.org/previews/66/66716_931655-lq.mp3"></audio>
+    <audio id="audio-kick" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/67723/kick.wav"></audio>
+    <audio id="audio-snare" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/67723/snare.wav"></audio>
+    <audio id="audio-hihat" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/67723/hihat.wav"></audio>
+    <audio id="audio-clap" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/67723/clap.wav"></audio>
+    <audio id="audio-tom" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/67723/tom.wav"></audio>
+    <audio id="audio-rim" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/67723/hihat.wav"></audio>
+    <audio id="audio-perc" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/67723/openhat.wav"></audio>
+    <audio id="audio-cowbell" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/67723/tink.wav"></audio>
         <script>
             const soundMap = {
                 Q: 'kick',
