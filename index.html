@@ -11,9 +11,19 @@
 </head>
 <body class="bg-[#323437] text-white min-h-screen flex flex-col items-center justify-center p-4">
     <h1 class="text-3xl">Beatpad</h1>
-    <p class="mb-8">A simple, easy-to-use drum pad to create beats!</p>
+    <p class="mb-4">A simple, easy-to-use drum pad to create beats!</p>
+    <div class="flex items-center gap-2 mb-6">
+        <span id="mode-label" class="text-sm">Drumpad</span>
+        <label class="inline-flex relative items-center cursor-pointer">
+            <input type="checkbox" id="mode-toggle" class="sr-only peer">
+            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:bg-blue-400 transition"></div>
+            <div class="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition peer-checked:translate-x-5"></div>
+        </label>
+        <span class="text-sm">Beat Editor</span>
+    </div>
     <div class="flex flex-col items-center gap-4">
         <div id="drumpad" class="grid grid-cols-4 gap-4">
+    <!-- Drumpad UI (default) -->
             <button class="drum-btn bg-pink-300 hover:bg-pink-300 text-[#323437] p-6 rounded transition font-bold shadow-lg" data-key="Q" data-sound="kick">Q<br><span class="text-xs">Kick</span></button>
             <button class="drum-btn bg-blue-300 hover:bg-blue-300 text-[#323437] p-6 rounded transition font-bold shadow-lg" data-key="W" data-sound="snare">W<br><span class="text-xs">Snare</span></button>
             <button class="drum-btn bg-green-200 hover:bg-green-300 text-[#323437] p-6 rounded transition font-bold shadow-lg" data-key="E" data-sound="hihat">E<br><span class="text-xs">Hi-Hat</span></button>
@@ -23,15 +33,265 @@
             <button class="drum-btn bg-teal-300 hover:bg-teal-300 text-[#323437] p-6 rounded transition font-bold shadow-lg" data-key="D" data-sound="perc">D<br><span class="text-xs">Perc</span></button>
             <button class="drum-btn bg-red-300 hover:bg-red-300 text-[#323437] p-6 rounded transition font-bold shadow-lg" data-key="F" data-sound="cowbell">F<br><span class="text-xs">Cowbell</span></button>
         </div>
-    <audio id="audio-kick" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/67723/kick.wav"></audio>
-    <audio id="audio-snare" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/67723/snare.wav"></audio>
-    <audio id="audio-hihat" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/67723/hihat.wav"></audio>
-    <audio id="audio-clap" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/67723/clap.wav"></audio>
-    <audio id="audio-tom" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/67723/tom.wav"></audio>
-    <audio id="audio-rim" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/67723/hihat.wav"></audio>
-    <audio id="audio-perc" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/67723/openhat.wav"></audio>
-    <audio id="audio-cowbell" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/67723/tink.wav"></audio>
+        <!-- Beat Editor UI (hidden by default) -->
+        <div id="beat-editor" class="hidden flex-col items-center w-full">
+            <div class="mb-2 text-center text-lg font-bold">Beat Editor</div>
+            <div class="flex items-center gap-4 mb-4">
+                <label class="flex items-center gap-2">
+                    <span class="text-xs">BPM</span>
+                    <input id="bpm-slider" type="range" min="40" max="240" value="120" class="accent-blue-400" style="width:120px;">
+                    <input id="bpm-input" type="number" min="40" max="240" value="120" class="w-16 text-black rounded px-1 py-0.5 text-xs">
+                </label>
+                <button id="play-btn" class="bg-green-400 hover:bg-green-500 text-[#323437] font-bold px-4 py-1 rounded shadow transition">Play</button>
+                <button id="stop-btn" class="bg-red-400 hover:bg-red-500 text-[#323437] font-bold px-4 py-1 rounded shadow transition hidden">Stop</button>
+                <button id="export-btn" class="bg-blue-400 hover:bg-blue-500 text-[#323437] font-bold px-4 py-1 rounded shadow transition">Export</button>
+            </div>
+            <div class="overflow-x-auto w-full flex flex-col items-center">
+                <table id="beat-grid" class="border-separate border-spacing-1 select-none">
+                    <tbody>
+                        <!-- JS will fill this grid -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        </div>
+    <!-- <audio id="audio-kick" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/67723/kick.wav"></audio> -->
+    <audio id="audio-kick" src="kick.wav"></audio>
+    <audio id="audio-snare" src="snare.wav"></audio>
+    <audio id="audio-hihat" src="hihat.wav"></audio>
+    <audio id="audio-clap" src="clap.wav"></audio>
+    <audio id="audio-tom" src="tom.wav"></audio>
+    <audio id="audio-rim" src="hihat.wav"></audio>
+    <audio id="audio-perc" src="openhat.wav"></audio>
+    <audio id="audio-cowbell" src="tink.wav"></audio>
         <script>
+        // --- Export Music Feature ---
+        const exportBtn = document.getElementById('export-btn');
+        exportBtn.addEventListener('click', exportBeatAsWav);
+
+        async function exportBeatAsWav() {
+            exportBtn.disabled = true;
+            exportBtn.textContent = 'Exporting...';
+            // Prepare offline audio context
+            const sampleRate = 44100;
+            const stepDuration = 60 / bpm; // seconds per step
+            const totalDuration = stepDuration * numCols;
+            const offlineCtx = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(1, sampleRate * totalDuration, sampleRate);
+            // Load all drum samples as AudioBuffers
+            const soundFiles = [
+                document.getElementById('audio-kick').src,
+                document.getElementById('audio-snare').src,
+                document.getElementById('audio-hihat').src,
+                document.getElementById('audio-clap').src,
+                document.getElementById('audio-tom').src,
+                document.getElementById('audio-perc').src
+            ];
+            const buffers = await Promise.all(soundFiles.map(url => fetch(url).then(r => r.arrayBuffer()).then(b => offlineCtx.decodeAudioData(b))));
+            // Schedule all notes
+            for (let col = 0; col < numCols; col++) {
+                const time = col * stepDuration;
+                for (let row = 0; row < numRows; row++) {
+                    if (beatGrid[row][col]) {
+                        const src = offlineCtx.createBufferSource();
+                        src.buffer = buffers[row];
+                        src.connect(offlineCtx.destination);
+                        src.start(time);
+                    }
+                }
+            }
+            // Render and export
+            const renderedBuffer = await offlineCtx.startRendering();
+            const wavBlob = bufferToWavBlob(renderedBuffer);
+            const url = URL.createObjectURL(wavBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'beat.wav';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+            exportBtn.disabled = false;
+            exportBtn.textContent = 'Export';
+        }
+
+        // Convert AudioBuffer to WAV Blob
+        function bufferToWavBlob(buffer) {
+            const numOfChan = buffer.numberOfChannels,
+                length = buffer.length * numOfChan * 2 + 44,
+                bufferArray = new ArrayBuffer(length),
+                view = new DataView(bufferArray),
+                channels = [],
+                sampleRate = buffer.sampleRate;
+            let offset = 0;
+            let pos = 0;
+            // Write WAV header
+            function setUint16(val) { view.setUint16(pos, val, true); pos += 2; }
+            function setUint32(val) { view.setUint32(pos, val, true); pos += 4; }
+            setUint32(0x46464952); // "RIFF"
+            setUint32(length - 8); // file length - 8
+            setUint32(0x45564157); // "WAVE"
+            setUint32(0x20746d66); // "fmt "
+            setUint32(16); // PCM format chunk length
+            setUint16(1); // format = 1
+            setUint16(numOfChan);
+            setUint32(sampleRate);
+            setUint32(sampleRate * 2 * numOfChan); // avg. bytes/sec
+            setUint16(numOfChan * 2); // block-align
+            setUint16(16); // 16-bit (hardcoded)
+            setUint32(0x61746164); // "data"
+            setUint32(length - 44); // data chunk length
+            // Write interleaved data
+            for (let i = 0; i < buffer.numberOfChannels; i++)
+                channels.push(buffer.getChannelData(i));
+            let sample = 0;
+            while (pos < length) {
+                for (let i = 0; i < numOfChan; i++) {
+                    sample = Math.max(-1, Math.min(1, channels[i][offset]));
+                    sample = (0.5 + sample * 32767) | 0;
+                    view.setInt16(pos, sample, true);
+                    pos += 2;
+                }
+                offset++;
+            }
+            return new Blob([bufferArray], { type: 'audio/wav' });
+        }
+        // --- BPM and Playback Controls ---
+        let bpm = 120;
+        const bpmSlider = document.getElementById('bpm-slider');
+        const bpmInput = document.getElementById('bpm-input');
+        bpmSlider.addEventListener('input', e => {
+            bpm = parseInt(e.target.value);
+            bpmInput.value = bpm;
+        });
+        bpmInput.addEventListener('input', e => {
+            let val = parseInt(e.target.value);
+            if (isNaN(val)) val = 40;
+            if (val < 40) val = 40;
+            if (val > 240) val = 240;
+            bpm = val;
+            bpmSlider.value = bpm;
+        });
+        // --- Play/Stop Buttons ---
+        const playBtn = document.getElementById('play-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        let isPlaying = false;
+        let playInterval = null;
+        let playStep = 0;
+        playBtn.addEventListener('click', () => {
+            if (!isPlaying) {
+                isPlaying = true;
+                playBtn.classList.add('hidden');
+                stopBtn.classList.remove('hidden');
+                startPlayback();
+            }
+        });
+        stopBtn.addEventListener('click', stopPlayback);
+
+        function startPlayback() {
+            playStep = 0;
+            playInterval = setInterval(() => {
+                playCurrentStep();
+                playStep = (playStep + 1) % numCols;
+                renderBeatGrid();
+            }, (60 / bpm) * 1000);
+            renderBeatGrid();
+        }
+
+        function stopPlayback() {
+            isPlaying = false;
+            playBtn.classList.remove('hidden');
+            stopBtn.classList.add('hidden');
+            clearInterval(playInterval);
+            playInterval = null;
+            playStep = 0;
+            renderBeatGrid();
+        }
+
+        function playCurrentStep() {
+            for (let row = 0; row < numRows; row++) {
+                if (beatGrid[row][playStep]) {
+                    playSound(instrumentSounds[row]);
+                }
+            }
+        }
+        // --- Beat Editor Grid Logic ---
+        const instrumentNames = [
+            'Kick', 'Snare', 'Hi-Hat', 'Clap', 'Tom', 'Perc'
+        ];
+        const instrumentSounds = [
+            'kick', 'snare', 'hihat', 'clap', 'tom', 'perc'
+        ];
+        // Pastel popping colors for each row
+        const rowActiveColors = [
+            'bg-pink-300 border-pink-500',
+            'bg-blue-300 border-blue-500',
+            'bg-green-300 border-green-500',
+            'bg-yellow-300 border-yellow-500',
+            'bg-purple-300 border-purple-500',
+            'bg-orange-300 border-orange-500'
+        ];
+        const numRows = 6;
+        const numCols = 24;
+        // 2D array: [row][col] = true/false
+        let beatGrid = Array.from({length: numRows}, () => Array(numCols).fill(false));
+        function renderBeatGrid() {
+            const tbody = document.querySelector('#beat-grid tbody');
+            tbody.innerHTML = '';
+            for (let row = 0; row < numRows; row++) {
+                const tr = document.createElement('tr');
+                // Instrument label
+                const labelTd = document.createElement('td');
+                labelTd.textContent = instrumentNames[row];
+                labelTd.className = 'pr-2 text-xs text-right align-middle';
+                tr.appendChild(labelTd);
+                for (let col = 0; col < numCols; col++) {
+                    const td = document.createElement('td');
+                    td.className = 'w-7 h-7 rounded cursor-pointer border border-gray-500 transition';
+                    td.dataset.row = row;
+                    td.dataset.col = col;
+                    // Active color for this row
+                    if (beatGrid[row][col]) {
+                        rowActiveColors[row].split(' ').forEach(cls => td.classList.add(cls));
+                    } else {
+                        td.classList.add('bg-gray-800', 'hover:bg-gray-600', 'hover:border-gray-400');
+                    }
+                    // Highlight current step if playing
+                    if (isPlaying && col === playStep) {
+                        td.classList.add('ring', 'ring-yellow-400', 'ring-2');
+                    }
+                    td.addEventListener('click', function() {
+                        beatGrid[row][col] = !beatGrid[row][col];
+                        // Play sound for this instrument if toggled on
+                        if (beatGrid[row][col]) {
+                            playSound(instrumentSounds[row]);
+                        }
+                        renderBeatGrid();
+                    });
+                    tr.appendChild(td);
+                }
+                tbody.appendChild(tr);
+            }
+        }
+        // Render grid on load
+        renderBeatGrid();
+        // Toggle between drumpad and beat editor
+        const drumpad = document.getElementById('drumpad');
+        const beatEditor = document.getElementById('beat-editor');
+        const modeToggle = document.getElementById('mode-toggle');
+        const modeLabel = document.getElementById('mode-label');
+        // Re-render grid when switching to beat editor mode
+        modeToggle.addEventListener('change', function() {
+            if (this.checked) renderBeatGrid();
+            if (this.checked) {
+                drumpad.classList.add('hidden');
+                beatEditor.classList.remove('hidden');
+                modeLabel.textContent = 'Beat Editor';
+            } else {
+                drumpad.classList.remove('hidden');
+                beatEditor.classList.add('hidden');
+                modeLabel.textContent = 'Drumpad';
+            }
+        });
             const soundMap = {
                 Q: 'kick',
                 W: 'snare',
